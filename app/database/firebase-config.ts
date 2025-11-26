@@ -24,7 +24,6 @@ async function getDbInstance(): Promise<Firestore> {
   // Initialize Firebase / Firestore
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app)
-
   return db
 }
 

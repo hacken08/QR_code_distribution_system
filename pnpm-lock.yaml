@@ -110,6 +110,9 @@ dependencies:
   cmdk:
     specifier: 1.0.4
     version: 1.0.4(@types/react-dom@19.2.3)(@types/react@19.2.6)(react-dom@19.2.0)(react@19.2.0)
+  csv-parser:
+    specifier: ^3.2.0
+    version: 3.2.0
   date-fns:
     specifier: 4.1.0
     version: 4.1.0
@@ -119,6 +122,9 @@ dependencies:
   firebase:
     specifier: ^12.6.0
     version: 12.6.0
+  fs:
+    specifier: 0.0.1-security
+    version: 0.0.1-security
   input-otp:
     specifier: 1.4.1
     version: 1.4.1(react-dom@19.2.0)(react@19.2.0)
@@ -131,6 +137,9 @@ dependencies:
   next-themes:
     specifier: ^0.4.6
     version: 0.4.6(react-dom@19.2.0)(react@19.2.0)
+  papaparse:
+    specifier: ^5.5.3
+    version: 5.5.3
   react:
     specifier: 19.2.0
     version: 19.2.0
@@ -172,6 +181,9 @@ devDependencies:
   '@types/node':
     specifier: ^20
     version: 20.19.25
+  '@types/papaparse':
+    specifier: ^5.5.0
+    version: 5.5.0
   '@types/react':
     specifier: ^19
     version: 19.2.6
@@ -4203,6 +4215,12 @@ packages:
     dependencies:
       undici-types: 6.21.0
 
+  /@types/papaparse@5.5.0:
+    resolution: {integrity: sha512-GVs5iMQmUr54BAZYYkByv8zPofFxmyxUpISPb2oh8sayR3+1zbxasrOvoKiHJ/nnoq/uULuPsu1Lze1EkagVFg==}
+    dependencies:
+      '@types/node': 20.19.25
+    dev: true
+
   /@types/react-dom@19.2.3(@types/react@19.2.6):
     resolution: {integrity: sha512-jp2L/eY6fn+KgVVQAOqYItbF0VY/YApe5Mz2F0aykSO8gx31bYCZyvSeYxCHKvzHG5eZjc+zyaS5BrBWya2+kQ==}
     peerDependencies:
@@ -4883,6 +4901,12 @@ packages:
 
   /csstype@3.2.3:
     resolution: {integrity: sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ==}
+
+  /csv-parser@3.2.0:
+    resolution: {integrity: sha512-fgKbp+AJbn1h2dcAHKIdKNSSjfp43BZZykXsCjzALjKy80VXQNHPFJ6T9Afwdzoj24aMkq8GwDS7KGcDPpejrA==}
+    engines: {node: '>= 10'}
+    hasBin: true
+    dev: false
 
   /d3-array@3.2.4:
     resolution: {integrity: sha512-tdQAmyA18i4J7wprpYq8ClcxZy3SC31QMeByyCFyRt7BVHdREQZ5lpzoe5mFEYZUWe+oq8HBvk9JjpibyEV4Jg==}
@@ -5711,6 +5735,10 @@ packages:
 
   /fraction.js@5.3.4:
     resolution: {integrity: sha512-1X1NTtiJphryn/uLQz3whtY6jK3fTqoE3ohKs0tT+Ujr1W59oopxmoEh7Lu5p6vBaPbgoM0bzveAW4Qi5RyWDQ==}
+    dev: false
+
+  /fs@0.0.1-security:
+    resolution: {integrity: sha512-3XY9e1pP0CVEUCdj5BmfIZxRBTSDycnbqhIOGec9QYtmVH2fbLpj86CFWkrNOkt/Fvty4KZG5lTglL9j/gJ87w==}
     dev: false
 
   /function-bind@1.1.2:
@@ -6619,6 +6647,10 @@ packages:
     dependencies:
       p-limit: 3.1.0
     dev: true
+
+  /papaparse@5.5.3:
+    resolution: {integrity: sha512-5QvjGxYVjxO59MGU2lHVYpRWBBtKHnlIAcSe1uNFCkkptUh63NFRj0FJQm7nR67puEruUci/ZkjmEFrjCAyP4A==}
+    dev: false
 
   /parent-module@1.0.1:
     resolution: {integrity: sha512-GQ2EWRpQV8/o+Aw8YqtfZZPfNRWZYkbidE9k5rpl/hC3vtHHBfGm2Ifi6qWV+coDGkrUKZAxE3Lot5kcsRlh+g==}

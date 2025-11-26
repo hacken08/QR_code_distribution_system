@@ -13,20 +13,11 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@radix-ui/react-tabs"
 export default function AdminPage() {
   const router = useRouter()
   const [userName, setUserName] = useState("")
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
   const [activeTab, setActiveTab] = useState("upload")
 
   useEffect(() => {
-    // const userRole = localStorage.getItem("userRole")
-    // const storedUserName = localStorage.getItem("userName")
-
-    // if (!userRole || userRole !== "admin") {
-    //   router.push("/login")
-    //   return
-    // }
-
-    // setUserName(storedUserName || "")
-    // setIsLoading(false)
+    
   }, [])
 
   const handleLogout = () => {

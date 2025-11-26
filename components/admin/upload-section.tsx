@@ -1,12 +1,17 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
 import type React from "react"
-
+import axios from 'axios'
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Upload, FileUp, AlertCircle, X } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import Papa from "papaparse";
+import { QrCodeSchemaList, qrCodeSchemaList, QrCodeSchema } from '../../app/database/schemas/qrcodeSchemas'
+import { stringify } from "querystring"
+
 // import { addDoc, collection } from 'firebase/firestore'
 // import { db } from '../../app/api/firebase-config'
 
@@ -15,27 +20,63 @@ export function UploadSection() {
   const [fileName, setFileName] = useState("")
   const [isUploading, setIsUploading] = useState(false)
   const [fileInput, setFileInput] = useState<HTMLInputElement | null>(null)
+  const [qrCodeData, setQrCodeData] = useState<QrCodeSchemaList>([]);
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    
-  }
+  const handleFileSelect =  (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setFileName(file.name);      
+    Papa.parse(file, {
+      header: true,
+      dynamicTyping: true,
+      complete: function (results: any) {
+        console.log("CSV data type\n", typeof results)
+        console.log("CSV data\n",  results)
+
+        const csvData: any[] = results.data;
+        const qrCodes: QrCodeSchemaList = csvData.map((data) => {
+            return {
+              productName: stringify(data.Product),  
+              itemCode: 1,
+              batchNo: 1,
+              qrcodeString: stringify(data['Qr Code']),
+              points: parseInt(data.qr_code_point)
+            }
+        }) 
+        setQrCodeData(qrCodes)
+      },
+    });
+  };
+
+
 
   const handleUpload = async () => {
-    // try {
-    //   const docRef = await addDoc(collection(db, "users"), {
-    //     first: "Ada",
-    //     last: "Lovelace",
-    //     born: 1815
-    //   });
-    //   console.log("Document written with ID: ", docRef.id);
-    // } catch (e) {
-    //   console.error("Error adding document: ", e);
-    // }
-  }
+    if (!fileInput?.files?.[0]) return;
+    const file = fileInput.files[0];
+    setIsUploading(true);
+
+    try {
+      // Create form data for upload
+      const res = await axios.post("/api/upload_qr", qrCodeData);
+
+      if (res.status >= 400) throw new Error("Upload failed");
+
+      console.log("Uploaded:", file.name);
+      alert("File uploaded successfully!");
+
+    } catch (err) {
+      console.error(err);
+      alert("Error uploading file");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
 
   const clearFile = () => {
-   
-  }
+    // setFileName("");
+    // if (fileInput) fileInput.value = "";
+  };
 
   return (
     <div className="space-y-4 md:space-y-6">
@@ -95,12 +136,12 @@ export function UploadSection() {
             {fileName && (
               <div className="flex items-center justify-between p-3 md:p-4 bg-muted rounded-lg border">
                 <div className="flex items-center gap-2 min-w-0">
-                  <FileUp className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0 text-blue-600" />
+                  <FileUp className="w-4 h-4 md:w-5 md:h-5  text-blue-600" />
                   <p className="text-xs md:text-sm font-medium truncate">{fileName}</p>
                 </div>
                 <button
                   onClick={clearFile}
-                  className="flex-shrink-0 p-1 hover:bg-background rounded transition-colors"
+                  className="p-1 hover:bg-background rounded transition-colors"
                   aria-label="Clear file"
                 >
                   <X className="w-4 h-4 md:w-5 md:h-5" />
@@ -111,7 +152,7 @@ export function UploadSection() {
 
           {/* Info Alert */}
           <Alert className="text-xs md:text-sm">
-            <AlertCircle className="h-4 w-4 flex-shrink-0" />
+            <AlertCircle className="h-4 w-4 shrink-0" />
             <AlertDescription>
               {uploadType === "excel"
                 ? "Excel file should contain columns: Product Name, QR Code, Quantity"
@@ -119,13 +160,13 @@ export function UploadSection() {
             </AlertDescription>
           </Alert>
 
-          <Button
+          <button
             onClick={handleUpload}
             disabled={!fileName || isUploading}
             className="w-full bg-blue-600 hover:bg-blue-700 text-sm md:text-base py-2 md:py-3"
           >
             {isUploading ? "Uploading..." : "Upload File"}
-          </Button>
+          </button>
         </CardContent>
       </Card>
 

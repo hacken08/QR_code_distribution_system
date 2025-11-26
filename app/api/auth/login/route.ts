@@ -1,5 +1,6 @@
 import { addDoc, collection, Firestore } from 'firebase/firestore';
-import { getDbInstance } from '../../firebase-config';
+import { getDbInstance } from '../../../database/firebase-config';
+import { userConverter } from '@/app/database/schemas/usersSchemas';
 
 
 
@@ -11,11 +12,10 @@ export async function GET(request: Request) {
   // Adding user to db
   try {
     console.log("Saving user to firestore database: db type", db instanceof Firestore);
-    const docRef = await addDoc(collection(db, "users"), {
-      first: "Anmol",
-      last: "Goya",
-      born: 2005,
-      smartness: "infinite"
+    const docRef = await addDoc(collection(db, "users").withConverter(userConverter), {
+      name: "anmol",
+      email: "anmolgoya.code@gmail.com",
+      profilePicture: "https://localhost:3000"
     });
     console.log("Document written with ID: ", docRef.id);
   } catch (e) {
