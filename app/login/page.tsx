@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
@@ -19,9 +20,6 @@ export default function LoginPageRoute() {
 
   const handleLogin = () => {
     if (selectedRole) {
-      localStorage.setItem("userRole", selectedRole)
-      localStorage.setItem("userName", name)
-
       if (selectedRole === "admin") {
         router.push("/admin")
       } else {

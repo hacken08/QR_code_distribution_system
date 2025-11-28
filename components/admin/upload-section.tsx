@@ -9,8 +9,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Upload, FileUp, AlertCircle, X } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import Papa from "papaparse";
-import { QrCodeSchemaList, qrCodeSchemaList, QrCodeSchema } from '../../app/database/schemas/qrcodeSchemas'
-import { stringify } from "querystring"
+import { QrCodeSchemaList } from '../../app/database/schemas/qrcodeSchemas'
+import {
+  Input,
+  notification
+} from 'antd'
+import { number } from "zod"
 
 // import { addDoc, collection } from 'firebase/firestore'
 // import { db } from '../../app/api/firebase-config'
@@ -21,7 +25,11 @@ export function UploadSection() {
   const [isUploading, setIsUploading] = useState(false)
   const [fileInput, setFileInput] = useState<HTMLInputElement | null>(null)
   const [qrCodeData, setQrCodeData] = useState<QrCodeSchemaList>([]);
+  const [batchNo, setBatchNo] = useState<number>()
+  const [itemCode, setItemCode] = useState<number>()
+  const [api, contextHolder] = notification.useNotification()
 
+  
   const handleFileSelect =  (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -30,20 +38,27 @@ export function UploadSection() {
       header: true,
       dynamicTyping: true,
       complete: function (results: any) {
-        console.log("CSV data type\n", typeof results)
-        console.log("CSV data\n",  results)
-
         const csvData: any[] = results.data;
-        const qrCodes: QrCodeSchemaList = csvData.map((data) => {
+        const qrCodes = csvData.map((data, idx) => {
+          const dataValues = Object.values(data)
+          try {
             return {
-              productName: stringify(data.Product),  
               itemCode: 1,
               batchNo: 1,
-              qrcodeString: stringify(data['Qr Code']),
-              points: parseInt(data.qr_code_point)
+              productName: dataValues[1] as string,  
+              qrcodeString: dataValues[4] as string,
+              points: dataValues[3] as number
             }
-        }) 
-        setQrCodeData(qrCodes)
+          }
+          catch (e) {
+            console.info(`PARSING ERROR: Unable to parse data for row ${idx}\n ${data}`)
+            return null
+          }
+        })
+        
+        let filterNullValue = qrCodes.filter(data => data !== null)
+        filterNullValue = filterNullValue.filter(data => data.productName || data.qrcodeString)
+        setQrCodeData(filterNullValue)
       },
     });
   };
@@ -53,17 +68,30 @@ export function UploadSection() {
   const handleUpload = async () => {
     if (!fileInput?.files?.[0]) return;
     const file = fileInput.files[0];
+
+    // checking item code and batch no
+    if (itemCode === undefined || batchNo === undefined) {
+      api.error({
+        title: 'Missing Field',
+        description: 'Item code or batchNo is not provided.',
+        duration: false,
+      })
+      return
+    }
+    
     setIsUploading(true);
 
     try {
-      // Create form data for upload
+      qrCodeData.forEach((qrData) => {
+        qrData.batchNo = batchNo;
+        qrData.itemCode = itemCode;
+      })
+      console.log(qrCodeData);
       const res = await axios.post("/api/upload_qr", qrCodeData);
-
       if (res.status >= 400) throw new Error("Upload failed");
-
+      
       console.log("Uploaded:", file.name);
       alert("File uploaded successfully!");
-
     } catch (err) {
       console.error(err);
       alert("Error uploading file");
@@ -80,6 +108,7 @@ export function UploadSection() {
 
   return (
     <div className="space-y-4 md:space-y-6">
+      {contextHolder}
       <Card>
         <CardHeader className="pb-3 md:pb-6">
           <CardTitle className="text-lg md:text-2xl">Upload QR Codes</CardTitle>
@@ -113,7 +142,7 @@ export function UploadSection() {
               <input
                 ref={setFileInput}
                 type="file"
-                accept={uploadType === "excel" ? ".xlsx,.xls,.csv" : ".zip,.rar"}
+                accept={uploadType === "excel" ? ".csv" : ".zip,.rar"}
                 onChange={handleFileSelect}
                 disabled={isUploading}
                 className="hidden"
@@ -133,6 +162,14 @@ export function UploadSection() {
               </label>
             </div>
 
+            <div className="flex flex-col my-6 gap-2">
+              <label className="text-xs md:text-sm font-medium block">Item Code</label>
+              <Input placeholder="Item code" type={'number'} onChange={e=>setItemCode(parseInt(e.target.value))}/>
+              <div className="h-3"></div>
+              <label className="text-xs md:text-sm font-medium block">Batch No.</label>
+              <Input placeholder="Batch No."  type={'number'} onChange={e=>setBatchNo(parseInt(e.target.value))} />
+            </div>
+
             {fileName && (
               <div className="flex items-center justify-between p-3 md:p-4 bg-muted rounded-lg border">
                 <div className="flex items-center gap-2 min-w-0">
@@ -150,6 +187,8 @@ export function UploadSection() {
             )}
           </div>
 
+          <div className="h-5"></div>
+          
           {/* Info Alert */}
           <Alert className="text-xs md:text-sm">
             <AlertCircle className="h-4 w-4 shrink-0" />

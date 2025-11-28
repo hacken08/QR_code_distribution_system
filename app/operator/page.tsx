@@ -6,7 +6,7 @@ import { DownloadHistory } from "@/components/operator/download-history"
 import { DownloadSection } from "@/components/operator/download-section"
 import { RequestQRCode } from "@/components/operator/request-qr-code"
 import { Button } from "@/components/ui/button"
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@radix-ui/react-tabs"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { LogOut, Download, Plus, History } from "lucide-react"
 
 export default function OperatorPage() {
@@ -17,21 +17,11 @@ export default function OperatorPage() {
 
 
   useEffect(() => {
-    const userRole = localStorage.getItem("userRole")
-    const storedUserName = localStorage.getItem("userName")
-
-    if (!userRole || userRole !== "operator") {
-      router.push("/login")
-      return
-    }
-
     // setUserName(storedUserName || "")
     // setIsLoading(false)
   }, [])
 
   const handleLogout = () => {
-    localStorage.removeItem("userRole")
-    localStorage.removeItem("userName")
     router.push("/login")
   }
 

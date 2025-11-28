@@ -1,27 +1,29 @@
 
-import {z} from 'zod';
-import { FirestoreDataConverter, QueryDocumentSnapshot, SnapshotOptions, Timestamp } from 'firebase/firestore';
+import { z } from 'zod';
+import { FirestoreDataConverter, QueryDocumentSnapshot, SnapshotOptions } from 'firebase/firestore';
 
 //  Main Entity
 export const qrcodeSchemas = z.object({
-    id: z.string().optional(), 
-    productName: z.string(),
-    itemCode: z.number().gt(0, "item code should be positive integer").nullable(),
-    batchNo: z.number().gt(0, "'batch no' should be positive integer").nullable(),
-    qrcodeString: z.string(),
-    isUsed: z.boolean().optional().default(false),
-    createdAt: z.date().nullable().optional().default(new Date),
-    deletedAt: z.date().nullable().optional().default(null),
-    updatedAt: z.date().nullable().optional().default(null),
+  id: z.string().optional(),
+  productName: z.string(),
+  productId: z.string().min(0, "Product id not defined"),
+  itemCode: z.number().gt(0, "item code should be positive integer"),
+  batchNo: z.number().gt(0, "'batch no' should be positive integer"),
+  qrcodeString: z.string(),
+  points: z.number(),
+  isUsed: z.boolean().optional().default(false),
+  createdAt: z.date().nullable().optional().default(new Date),
+  deletedAt: z.date().nullable().optional().default(null),
+  updatedAt: z.date().nullable().optional().default(null),
 })
 
 // creat qrcode payload
- const qrCodePayloadSchema = z.object({
-  productName: z.string(),  
-  itemCode: z.number().nullable(),
-  batchNo: z.number().nullable(),
+const qrCodePayloadSchema = z.object({
+  productName: z.string(),
+  itemCode: z.number(),
+  batchNo: z.number(),
   qrcodeString: z.string(),
-  points: z.number().nullable(),
+  points: z.number(),
 });
 type QrCodeSchema = z.infer<typeof qrCodePayloadSchema>
 
@@ -29,6 +31,8 @@ const qrCodeSchemaList = z.array(qrCodePayloadSchema)
 type QrCodeSchemaList = z.infer<typeof qrCodeSchemaList>
 
 export type QrCode = z.infer<typeof qrcodeSchemas>;
+
+// creating a model from qr code schemas
 const qrcodeModel: FirestoreDataConverter<QrCode> = {
   toFirestore: (user: QrCode) => {
     return qrcodeSchemas.parse(user);
@@ -43,4 +47,10 @@ const qrcodeModel: FirestoreDataConverter<QrCode> = {
   },
 };
 
-export { qrcodeModel, qrCodeSchemaList, qrCodePayloadSchema, type QrCodeSchemaList, type QrCodeSchema }
+export {
+  qrcodeModel,
+  qrCodeSchemaList,
+  qrCodePayloadSchema,
+  type QrCodeSchema,
+  type QrCodeSchemaList,
+}

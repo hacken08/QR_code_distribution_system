@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -9,6 +9,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 // import { toast } from 'sonner'
 // import { addDoc, collection, Firestore } from "firebase/firestore"
 // import { addinigFirst, db } from "@/app/api/firebase-config"
+import { Select } from 'antd'
+import axios from 'axios'
 
 const productQRAvailability: Record<string, number> = {
   "MCB Box": 1250,
@@ -23,6 +25,7 @@ export function DownloadSection() {
   const [productName, setProductName] = useState("")
   const [quantity, setQuantity] = useState("")
   const [simulProduct, setSimulProduct] = useState("1")
+  const [availableProduct, setAvailableProduct] = useState<{ productName: string }[]>([]);
   const [isDownloading, setIsDownloading] = useState(false)
 
   const handleDownload = async () => {
@@ -35,6 +38,25 @@ export function DownloadSection() {
   const requestedQty = Number.parseInt(quantity) || 0
   const hasEnoughQR = requestedQty <= availableQR
 
+
+
+  useEffect(() => {
+    async function init() {
+      try {
+        const response = await axios.get("http://localhost:3000/api/get_product/");
+
+        if (response.status < 300) {
+          const productData = response.data.data;
+          setAvailableProduct(productData);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    
+    init()
+  }, [])
+  
   return (
     <div className="space-y-4 md:space-y-6">
       <Card>
@@ -47,11 +69,12 @@ export function DownloadSection() {
         <CardContent className="space-y-4 md:space-y-6">
           <div className="space-y-2">
             <label className="text-xs md:text-sm font-medium">Product Name</label>
-            <Input
-              placeholder="e.g., MCB Box, Module Box, Fan Box"
-              value={productName}
-              onChange={(e) => setProductName(e.target.value)}
-              className="text-xs md:text-sm"
+            <Select
+              showSearch
+              optionFilterProp="label"
+              placeholder="Select a product"
+              options={availableProduct.map((prod) => ({ label: prod.productName, value: prod.productName }))}
+              onChange={(value) => setProductName(String(value))}
             />
             <p className="text-xs text-muted-foreground">
               Available products: MCB Box, Module Box, Fan Box, Concealed, Ventogurd, Change Over

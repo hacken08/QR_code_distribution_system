@@ -8,7 +8,7 @@ import { ActivityLog } from "@/components/admin/activity-log"
 import { OperatorRequests } from "@/components/admin/operator-requests"
 import { UploadHistory } from "@/components/admin/upload-history"
 import { UploadSection } from "@/components/admin/upload-section"
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@radix-ui/react-tabs"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 
 export default function AdminPage() {
   const router = useRouter()
@@ -21,8 +21,6 @@ export default function AdminPage() {
   }, [])
 
   const handleLogout = () => {
-    localStorage.removeItem("userRole")
-    localStorage.removeItem("userName")
     router.push("/login")
   }
 
