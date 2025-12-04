@@ -1,18 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { addDoc, query, collection, where, getDocs } from 'firebase/firestore'
-import { getDbInstance } from '../../database/firebase-config'
+// import { getDbInstance } from '../../database/firebase-config'
 import {  qrcodeModel, qrCodeSchemaList  } from '../../database/schemas/qrcodeSchemas'
 import { NextResponse } from 'next/server';
 import { z } from 'zod'
 import { ProductModel } from '@/app/database/schemas/productSchemas';
-
+import { db } from '../../../lib/db'
 
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const findingUndefine = body.filter((data:any) => !data.productName || !data.qrcodeString || !data.points )
-    console.log(`undefine fields in qr data`, findingUndefine)
     const parsedBody = qrCodeSchemaList.parse(body);
 
     // check if body contains any data to upload
@@ -24,19 +23,18 @@ export async function POST(request: Request) {
     }
     
     const itemCode = parsedBody[0].itemCode
-    const db = await getDbInstance();
     const qrCodeCollection = collection(db, "qrcodes").withConverter(qrcodeModel)
 
     // Check if batch already exist in excel
-    // const qrCodebatchQuery =  query(qrCodeCollection, where('batchNo', '==', parsedBody[0].batchNo))
-    // const existedQrCode = await getDocs(qrCodebatchQuery)
-    
-    // if (existedQrCode.docs.length === 0) {
-    //   return NextResponse.json(
-    //     { message: " UNABLE TO UPLOAD: QR Code already exists" },
-    //     { status: 409 }
-    //   )
-    // }
+    console.log(`BATCH NO: ${parsedBody[0].batchNo}`);
+    const qrCodebatchQuery =  query(qrCodeCollection, where('batchNo', '==', parsedBody[0].batchNo))
+    const existedQrCode = await getDocs(qrCodebatchQuery)
+    if (existedQrCode.docs.length === 0) {
+      return NextResponse.json(
+        { message: " UNABLE TO UPLOAD: QR Code already exists" },
+        { status: 409 }
+      )
+    }
     
     // Checkng if the product with item code is exists
     const productCollection = collection(db, "products").withConverter(ProductModel);

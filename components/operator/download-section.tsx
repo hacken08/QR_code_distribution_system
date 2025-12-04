@@ -67,11 +67,10 @@ export function DownloadSection() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 md:space-y-6">
-          <div className="space-y-2">
+          <div className="space-y-2 flex flex-col">
             <label className="text-xs md:text-sm font-medium">Product Name</label>
             <Select
               showSearch
-              optionFilterProp="label"
               placeholder="Select a product"
               options={availableProduct.map((prod) => ({ label: prod.productName, value: prod.productName }))}
               onChange={(value) => setProductName(String(value))}

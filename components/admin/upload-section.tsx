@@ -86,11 +86,8 @@ export function UploadSection() {
         qrData.batchNo = batchNo;
         qrData.itemCode = itemCode;
       })
-      console.log(qrCodeData);
       const res = await axios.post("/api/upload_qr", qrCodeData);
       if (res.status >= 400) throw new Error("Upload failed");
-      
-      console.log("Uploaded:", file.name);
       alert("File uploaded successfully!");
     } catch (err) {
       console.error(err);

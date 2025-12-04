@@ -4,11 +4,11 @@ import { FirestoreDataConverter, QueryDocumentSnapshot, SnapshotOptions } from '
 
 
 const productSchemas = z.object({
-    itemCode: z.number(),
-    productName: z.string(),
-    createdAt: z.date().nullable().optional().default(new Date),
-    deletedAt: z.date().nullable().optional().default(null),
-    updatedAt: z.date().nullable().optional().default(null)
+  itemCode: z.number(),
+  productName: z.string(),
+  createdAt: z.date().nullable().optional().default(new Date),
+  deletedAt: z.date().nullable().optional().default(null),
+  updatedAt: z.date().nullable().optional().default(null)
 })
 
 type ProductType = z.infer<typeof productSchemas>

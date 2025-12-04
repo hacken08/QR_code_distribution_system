@@ -33,7 +33,7 @@ type QrCodeSchemaList = z.infer<typeof qrCodeSchemaList>
 export type QrCode = z.infer<typeof qrcodeSchemas>;
 
 // creating a model from qr code schemas
-const qrcodeModel: FirestoreDataConverter<QrCode> = {
+const QrcodeModel: FirestoreDataConverter<QrCode> = {
   toFirestore: (user: QrCode) => {
     return qrcodeSchemas.parse(user);
   },
@@ -48,7 +48,7 @@ const qrcodeModel: FirestoreDataConverter<QrCode> = {
 };
 
 export {
-  qrcodeModel,
+  QrcodeModel as qrcodeModel,
   qrCodeSchemaList,
   qrCodePayloadSchema,
   type QrCodeSchema,
