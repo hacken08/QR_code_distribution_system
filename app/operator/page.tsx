@@ -77,7 +77,7 @@ export default function OperatorPage() {
                 </TabsList>
                 <TabsContent value="downloads" className="space-y-4">
                   <DownloadSection />
-                </TabsContent>``
+                </TabsContent>
 
                 <TabsContent value="history" className="space-y-4">
                   <DownloadHistory />

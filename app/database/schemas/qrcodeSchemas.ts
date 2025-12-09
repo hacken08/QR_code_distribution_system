@@ -4,17 +4,17 @@ import { FirestoreDataConverter, QueryDocumentSnapshot, SnapshotOptions } from '
 
 //  Main Entity
 export const qrcodeSchemas = z.object({
-  id: z.string().optional(),
-  productName: z.string(),
-  productId: z.string().min(0, "Product id not defined"),
-  itemCode: z.number().gt(0, "item code should be positive integer"),
-  batchNo: z.number().gt(0, "'batch no' should be positive integer"),
-  qrcodeString: z.string(),
+  id: z.number().optional(),
+  product_name: z.string(),
+  product_id: z.number().min(1, "Product id not defined"),
+  item_code: z.number().gt(0, "item_code should be positive integer"),
+  batch_no: z.number().gt(0, "batch_no should be positive integer"),
+  qrcode_string: z.string(),
   points: z.number(),
-  isUsed: z.boolean().optional().default(false),
-  createdAt: z.date().nullable().optional().default(new Date),
-  deletedAt: z.date().nullable().optional().default(null),
-  updatedAt: z.date().nullable().optional().default(null),
+  is_used: z.boolean().optional().default(false),
+  created_at: z.date().nullable().optional().default(() => new Date()),
+  deleted_at: z.date().nullable().optional().default(null),
+  updated_at: z.date().nullable().optional().default(null),
 })
 
 // creat qrcode payload
@@ -25,19 +25,19 @@ const qrCodePayloadSchema = z.object({
   qrcodeString: z.string(),
   points: z.number(),
 });
-type QrCodeSchema = z.infer<typeof qrCodePayloadSchema>
 
+type QrCodePayloadTypes = z.infer<typeof qrCodePayloadSchema>
 const qrCodeSchemaList = z.array(qrCodePayloadSchema)
 type QrCodeSchemaList = z.infer<typeof qrCodeSchemaList>
 
-export type QrCode = z.infer<typeof qrcodeSchemas>;
+type QrCodeType = z.infer<typeof qrcodeSchemas>;
 
 // creating a model from qr code schemas
-const QrcodeModel: FirestoreDataConverter<QrCode> = {
-  toFirestore: (user: QrCode) => {
+const QrcodeModel: FirestoreDataConverter<QrCodeType> = {
+  toFirestore: (user: QrCodeType) => {
     return qrcodeSchemas.parse(user);
   },
-  fromFirestore: (snapshot: QueryDocumentSnapshot, options: SnapshotOptions): QrCode => {
+  fromFirestore: (snapshot: QueryDocumentSnapshot, options: SnapshotOptions): QrCodeType => {
     const data = snapshot.data(options);
     const validatedData = qrcodeSchemas.parse({
       ...data,
@@ -51,6 +51,6 @@ export {
   QrcodeModel as qrcodeModel,
   qrCodeSchemaList,
   qrCodePayloadSchema,
-  type QrCodeSchema,
+  type QrCodeType,
   type QrCodeSchemaList,
 }

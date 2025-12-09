@@ -7,6 +7,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "migrate": "npx ts-node db/run-migration.ts",
     "lint": "eslint"
   },
   "dependencies": {
@@ -57,6 +58,7 @@
     "next": "16.0.0",
     "next-themes": "^0.4.6",
     "papaparse": "^5.5.3",
+    "path": "^0.12.7",
     "react": "19.2.0",
     "react-day-picker": "9.8.0",
     "react-dom": "19.2.0",

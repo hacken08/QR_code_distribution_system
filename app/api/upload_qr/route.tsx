@@ -5,69 +5,74 @@ import {  qrcodeModel, qrCodeSchemaList  } from '../../database/schemas/qrcodeSc
 import { NextResponse } from 'next/server';
 import { z } from 'zod'
 import { ProductModel } from '@/app/database/schemas/productSchemas';
-import { db } from '../../../lib/db'
+import { db } from '../../../db/db'
 
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const findingUndefine = body.filter((data:any) => !data.productName || !data.qrcodeString || !data.points )
     const parsedBody = qrCodeSchemaList.parse(body);
 
     // check if body contains any data to upload
     if (parsedBody.length === 0) {
       return NextResponse.json(
-        { message: "NOT FONUD: there is no qr code to upload" },
-        { status: 409 }
+        { message: "NOT FONUD: There is no QR code provided to upload in request payload" },
+        { status: 204 }
       )
     }
     
     const itemCode = parsedBody[0].itemCode
-    const qrCodeCollection = collection(db, "qrcodes").withConverter(qrcodeModel)
+    const batchNo = parsedBody[0].batchNo
+    const productName = parsedBody[0].productName
 
     // Check if batch already exist in excel
-    console.log(`BATCH NO: ${parsedBody[0].batchNo}`);
-    const qrCodebatchQuery =  query(qrCodeCollection, where('batchNo', '==', parsedBody[0].batchNo))
-    const existedQrCode = await getDocs(qrCodebatchQuery)
-    if (existedQrCode.docs.length === 0) {
+    const existedQrCodeQuery = db.prepare(`
+      SELECT * FROM qrcodes 
+      WHERE 'batch_no' = ${batchNo};
+    `)
+    const existedQrCode = existedQrCodeQuery.all()
+    if (existedQrCode.length > 0) {
       return NextResponse.json(
-        { message: " UNABLE TO UPLOAD: QR Code already exists" },
+        { message: "UNABLE TO UPLOAD: QR Code already exists" },
         { status: 409 }
       )
     }
     
     // Checkng if the product with item code is exists
-    const productCollection = collection(db, "products").withConverter(ProductModel);
-    const itemCodeQuery = query(productCollection , where('itemCode', '==', itemCode))
-    const productSnapShot = await getDocs(itemCodeQuery) 
-    let productId = productSnapShot.empty ? "" : productSnapShot.docs[0].id;
- 
-    // saving that product if it's not exists
-    if (productSnapShot.empty) {  
-      const productRef = await addDoc(productCollection, {
-        itemCode, 
-        productName: parsedBody[0].productName,
-        createdAt: new Date(),
-        deletedAt: null,
-        updatedAt: null
-      })
-      productId = productRef.id
-    }
+    const getOrCreateProductId = db.transaction((productParams: {
+      itemCode: number, 
+      productName: string,
+    }): number => {
+      const row = db.prepare("SELECT id FROM products WHERE item_code = ?").get(productParams.itemCode) as any;
+      if (row) return row.id;
+      const insert = db.prepare("INSERT INTO products (item_code, product_name) VALUES (?, ?)");
+      const result = insert.run(productParams.itemCode, productParams.productName);
+      return result.lastInsertRowid as number;
+    });    
 
-    // pushing qr code data into firestore db
+    const productId = getOrCreateProductId({itemCode, productName: productName})
+
+    // Inserting QR Code data into sqlite3 database
     for (const qrData of parsedBody) {
-      await addDoc(qrCodeCollection, {
-        productId: productId,
-        productName: qrData.productName,
-        itemCode: qrData.itemCode,
-        batchNo: qrData.batchNo,
-        qrcodeString: qrData.qrcodeString,
-        points: qrData.points,
-        isUsed: false,
-        createdAt: new Date(),
-        deletedAt: null,
-        updatedAt: null
-      });
+      const insertQuery = `
+        INSERT INTO qrcodes (
+          product_name, 
+          product_id, 
+          item_code, 
+          batch_no, 
+          qrcode_string, 
+          points, 
+          is_used
+        ) 
+        VALUES ( 
+          '${qrData.productName}', 
+          '${productId}', 
+          '${qrData.itemCode}', 
+          '${qrData.batchNo}', 
+          '${qrData.qrcodeString}', 
+          '${qrData.points}', 0 );
+      `
+      db.exec(insertQuery) // executing query 
     }
     
     return NextResponse.json({

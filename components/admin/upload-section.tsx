@@ -49,20 +49,17 @@ export function UploadSection() {
               qrcodeString: dataValues[4] as string,
               points: dataValues[3] as number
             }
-          }
-          catch (e) {
+          } catch (e: any) {
             console.info(`PARSING ERROR: Unable to parse data for row ${idx}\n ${data}`)
             return null
           }
         })
-        
         let filterNullValue = qrCodes.filter(data => data !== null)
         filterNullValue = filterNullValue.filter(data => data.productName || data.qrcodeString)
         setQrCodeData(filterNullValue)
       },
     });
   };
-
 
 
   const handleUpload = async () => {
@@ -196,13 +193,13 @@ export function UploadSection() {
             </AlertDescription>
           </Alert>
 
-          <button
+          <Button
             onClick={handleUpload}
             disabled={!fileName || isUploading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-sm md:text-base py-2 md:py-3"
+            className="w-full bg-blue-600 cursor-pointer hover:bg-blue-700 gap-2 text-sm md:text-base py-2 md:py-3"
           >
             {isUploading ? "Uploading..." : "Upload File"}
-          </button>
+          </Button>
         </CardContent>
       </Card>
 
