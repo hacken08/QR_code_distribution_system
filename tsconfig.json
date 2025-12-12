@@ -1,5 +1,8 @@
 {
   "compilerOptions": {
+    // "files": [
+    //   "./types/excel4node.d.ts",
+    // ],
     "target": "ES2017",
     "typeRoots": ["./types", "./node_modules/@types"],
     "lib": [
@@ -25,6 +28,7 @@
       }
     ],
     "paths": {
+      // "excel4node": ["./types/excel4node.d.ts"],
       "@/*": [
         "./*"
       ]
@@ -37,6 +41,7 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts",
+    "types/**/*.d.ts",
     ".next\\dev/types/**/*.ts",
     ".next\\dev/types/**/*.ts"
   ],

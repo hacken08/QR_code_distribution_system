@@ -16,6 +16,7 @@ export const qrcodeSchemas = z.object({
   deleted_at: z.date().nullable().optional().default(null),
   updated_at: z.date().nullable().optional().default(null),
 })
+type QrCodeType = z.infer<typeof qrcodeSchemas>;
 
 // creat qrcode payload
 const qrCodePayloadSchema = z.object({
@@ -30,7 +31,6 @@ type QrCodePayloadTypes = z.infer<typeof qrCodePayloadSchema>
 const qrCodeSchemaList = z.array(qrCodePayloadSchema)
 type QrCodeSchemaList = z.infer<typeof qrCodeSchemaList>
 
-type QrCodeType = z.infer<typeof qrcodeSchemas>;
 
 // creating a model from qr code schemas
 const QrcodeModel: FirestoreDataConverter<QrCodeType> = {

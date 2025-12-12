@@ -38,11 +38,9 @@ export async function POST(req: Request) {
         `)
 
         const claimedQr = claimQRCodeQuery.all(productId, qrQty)
-        console.log("{DB QUERY} claimedQRCodeQuery RESPONSE  -> ", claimedQr)
-
         const qrCodesParsed = z.array(qrcodeSchemas).safeParse(claimedQr)
         if (!qrCodesParsed.success) {
-            console.log("{API ERROR} api/download_qr  -> ", qrCodesParsed.error)
+            console.log("{API ERROR} Database Query fail at api/download_qr line: 43  -> ", qrCodesParsed.error)
             return NextResponse.json({
                 success: false,
                 message: "unable to parse QR codes fetched from DB",
@@ -56,7 +54,7 @@ export async function POST(req: Request) {
         if (qrCodesCount === 0) {
             return NextResponse.json({
                 success: false,
-                message: "{DB RETURN EMPTY} There no qr code to return", 
+                message: "There no qr code to return", 
             }, { status: 404 })
         }
 

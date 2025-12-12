@@ -52,9 +52,9 @@ async function getProductsQrCount(id: number): Promise<ApiResponse<any>> {
 async function getDownloadQrCode(productId: number, qrQty: number): Promise<ApiResponse<QrCodeType[]>> {
     try {
         const response = await axios.post(
-            '/api/download_qr', { 
-            qrQty, 
-            productId 
+            '/api/download_qr', {
+            qrQty,
+            productId
         });
 
         console.log("{API RES} /api/download_qr -> \n", response)
@@ -74,5 +74,28 @@ async function getDownloadQrCode(productId: number, qrQty: number): Promise<ApiR
 }
 
 
-export { getProducts, getProductsQrCount, getDownloadQrCode }
+
+
+async function createExcelApi(qrCodes: QrCodeType[]): Promise<ApiResponse<any>> {
+    try {
+        const response = await axios.post('/api/gen-xl', { qrCodes });
+        console.log("{API RES} /api/gen-xl -> \n", response)
+        if (!response.data?.data) {
+            return {
+                status: false,
+                error: 'Invalid response format from server',
+            };
+        }
+        return {
+            status: true,
+            data: response.data.data,
+        };
+    } catch (err: unknown) {
+        return apiErrorHandle<any>(err)
+    }
+}
+
+
+
+export { getProducts, getProductsQrCount, getDownloadQrCode, createExcelApi }
 
