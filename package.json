@@ -7,7 +7,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "migrate": "npx ts-node db/run-migration.ts",
+    "migrate": "npx tsx db/run-migration.ts",
     "lint": "eslint"
   },
   "dependencies": {
@@ -70,6 +70,7 @@
     "sonner": "^1.7.4",
     "tailwind-merge": "^3.4.0",
     "tailwindcss-animate": "^1.0.7",
+    "tsx": "^4.21.0",
     "vaul": "^1.1.2",
     "write-excel-file": "^2.3.10",
     "zod": "3.25.76"

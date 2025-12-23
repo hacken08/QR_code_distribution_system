@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -11,12 +11,10 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 // import { addDoc, collection, Firestore } from "firebase/firestore"
 // import { addinigFirst, db } from "@/app/api/firebase-config"
 import { Select } from 'antd'
-import axios from 'axios'
 import { getProducts, getProductsQrCount, createExcelApi } from "@/app/apiServices/apiService"
 import { ProductType } from "@/app/database/schemas/productSchemas"
-import { getDownloadQrCode } from '../../app/apiServices/apiService'
+import { getDownloadQrCode as getQRCode } from '../../app/apiServices/apiService'
 import { notification } from 'antd'
-import { QrCodeType } from "@/app/database/schemas/qrcodeSchemas"
 // import excelJs, {Workbook} from 'exceljs'
 
 const productQRAvailability: Record<string, number> = {
@@ -30,7 +28,7 @@ const productQRAvailability: Record<string, number> = {
 
 export function DownloadSection() {
   const [quantity, setQuantity] = useState("")
-  const [simulProduct, setSimulProduct] = useState("1")
+  const [divideQRcodeIn, setDivideQRcodeIn] = useState("1")
   const [availableProduct, setAvailableProduct] = useState<ProductType[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<{productName: string, id: number, qrCodeCount: number }>()
   const [isDownloading, setIsDownloading] = useState(false)
@@ -38,23 +36,7 @@ export function DownloadSection() {
 
   const handleDownload = async () => {
     // Validation and check 
-    if (quantity === "" || !quantity ) {
-      console.log("{DOWNLOAD FAIL} Enter quantity to download")
-      toastApi.warning({
-        title: "DOWNLOAD FAIL",
-        description: "Enter quantity to download",
-        duration: false
-      })
-      return
-    } else if (!parseInt(quantity)) {
-      console.log("{VALIDATION FAIL} Quantity should be in numbers only")
-      toastApi.warning({
-        title: "Validation Error",
-        description: "Quantity should be in numbers only",
-        duration: false
-      })
-      return
-    } else if (!selectedProduct) {
+    if (!selectedProduct) {
       console.log("{DOWNLOAD FAIL} There is no product selected")
       toastApi.warning({
         title: "Download Fail",
@@ -63,9 +45,26 @@ export function DownloadSection() {
       })
       return
     }
+    if (quantity === "" || !quantity ||  !divideQRcodeIn) {
+      console.log("{DOWNLOAD FAIL} Enter quantity to download")
+      toastApi.warning({
+        title: "Download Fail",
+        description: "Enter quantity or 'Divide In'",
+        duration: false
+      })
+      return
+    } else if (!parseInt(quantity) || !parseInt(divideQRcodeIn)) {
+      console.log("{VALIDATION FAIL} Quantity should be in numbers only")
+      toastApi.warning({
+        title: "Validation Error",
+        description: "'Quantity' and 'Divide In' should be in numbers only",
+        duration: false
+      })
+      return
+    } 
     
     // Make a Api call to Server 
-    const downloadApiResponse = await getDownloadQrCode(
+    const downloadApiResponse = await getQRCode(
       selectedProduct.id, 
       parseInt(quantity)
     );
@@ -79,24 +78,22 @@ export function DownloadSection() {
       })
       return
     }
+    const fileName = `${selectedProduct?.productName.replace(/[^a-zA-Z0-9]/g, ' ')} - ${downloadApiResponse.data[0].batch_no} - ${downloadApiResponse.data.length}.xls`
 
-    const fileName = `${selectedProduct?.productName.replace(/[^a-zA-Z0-9]/g, '-')} - ${downloadApiResponse.data[0].batch_no} - ${downloadApiResponse.data.length}.xls`
+    // Generting excel with QR code data
+    console.log("{DEUBG INFO} DOwnloadApiresponse obj strucuter -> ", downloadApiResponse.data[0])
     const createExcelResponse = await createExcelApi(downloadApiResponse.data.map<any>((qrCode) => {
       return {
-        id: qrCode.id,
+        qrcode_string: qrCode.qrcode_string,
         product_name: qrCode.product_name,
         product_id: qrCode.product_id,
         batch_no: qrCode.batch_no,
-        qrcode_string: qrCode.qrcode_string,
         points: qrCode.points,
+        id: qrCode.id,
       }
-    })) // writing the data into excel
-
-    console.log("{DEBUG} fetching buffer from api ->", createExcelResponse)
-    const downloadStatus = await downloadingExcel(createExcelResponse.data, fileName)
-
-    console.log("{DEUBG} downloadingExcel func return: downloadStatus ->", downloadStatus)
-    if (!downloadStatus) {
+    }), parseInt(divideQRcodeIn)) 
+    const isExcelDownloadedByUser = await triggerSExcelDownload(createExcelResponse.data, fileName)
+    if (!isExcelDownloadedByUser) {
       toastApi.error({
         title: "Download Fail", 
         description: "Something went wrong while downloading the excel. Check the console log for more information",
@@ -114,7 +111,6 @@ export function DownloadSection() {
     const product = availableProduct.find(prod => prod.id === value)
     if (!product) return
     const responseData = await getProductsQrCount(product.id)
-    console.log("{API FUNC RES} getProductQrCount  -> ", responseData )
     if (!responseData.status || !responseData.data) return
     setSelectedProduct({
       productName: product?.product_name ?? "", 
@@ -123,97 +119,9 @@ export function DownloadSection() {
     })
   }
 
-  // const exportingExcel = async (qrCodes: QrCodeType[]) => {
-  //   try {
-  //     // 1. Create workbook and worksheet
-  //     const workbook = new excelJs.Workbook();
-  //     const worksheet = workbook.addWorksheet('QR Codes');
-
-  //     // 2. Define columns with proper widths
-  //     worksheet.columns = [
-  //       { header: 'QR Code', key: 'qrcode_string', width: 40 },
-  //       { header: 'Product Name', key: 'product_name', width: 25 },
-  //       { header: 'Item Code', key: 'item_code', width: 12 },
-  //       { header: 'Batch No', key: 'batch_no', width: 12 },
-  //       { header: 'Points', key: 'points', width: 10 },
-  //       { header: 'Generated At', key: 'created_at', width: 20 },
-  //     ];
-
-  //     worksheet.getRow(1).font = { bold: true };
-  //     worksheet.getRow(1).fill = {
-  //       type: 'pattern',
-  //       pattern: 'solid',
-  //       fgColor: { argb: '4F46E5' },
-  //     };
-  //     worksheet.getRow(1).font = { color: { argb: 'FFFFFF' } };
-
-  //     qrCodes.forEach((qr, index) => {
-  //       worksheet.addRow({
-  //         qrcode_string: qr.qrcode_string,
-  //         product_name: qr.product_name,
-  //         item_code: qr.item_code,
-  //         batch_no: qr.batch_no,
-  //         points: qr.points,
-  //         created_at: qr.created_at ? new Date(qr.created_at).toLocaleString() : new Date().toLocaleString(),
-  //       });
-
-  //       const row = worksheet.getRow(index + 2);
-  //       if (index % 2 === 0) {
-  //         row.fill = {
-  //           type: 'pattern',
-  //           pattern: 'solid',
-  //           fgColor: { argb: 'F8FAFC' }, // Light gray
-  //         };
-  //       }
-  //     });
-
-  //     worksheet.columns.forEach((column) => {
-  //       column.width = column.width || 15;
-  //     });
-
-  //     const buffer = await workbook.xlsx.writeBuffer();
-  //     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      
-  //     const url = URL.createObjectURL(blob);
-  //     const link = document.createElement('a');
-  //     link.href = url;
-  //     link.download = `QR-Codes-${selectedProduct?.productName}-${new Date().toISOString().split('T')[0]}.xlsx`;
-  //     document.body.appendChild(link);
-  //     link.click();
-  //     document.body.removeChild(link);
-  //     URL.revokeObjectURL(url);
-
-  //     toastApi.success({
-  //       title: 'Download Success!',
-  //       description: `Excel file with ${qrCodes.length} QR codes downloaded successfully`,
-  //       duration: 3000,
-  //     });
-
-  //     setQuantity('');
-  //     setSelectedProduct(undefined);
-  //     setIsDownloading(false);
-
-  //   } catch (error) {
-  //     console.error('Excel export error:', error);
-  //     toastApi.error({
-  //       title: 'Export Failed',
-  //       description: 'Failed to generate Excel file. Please try again.',
-  //       duration: 0,
-  //     });
-  //     setIsDownloading(false);
-  //   }
-  // };
-
-
-  async function downloadingExcel(buffer: any, fileTitle: string): Promise<boolean> {
+  async function triggerSExcelDownload(blob: any, fileTitle: string): Promise<boolean> {
     try {
-        console.log("{DEBUG DOWNLOAD EXCEL} passing buffer to downloadingExcel func ", buffer)
-        // Triggers download as .xls file
-        const blob = new Blob([buffer], {
-          type: 'application/vnd.ms-excel'
-        })
-
-        const excelUrl = URL.createObjectURL(blob) // Creating a url to contain excel file 
+        const excelUrl = URL.createObjectURL(blob) 
 
         // creat a tag with trigger url
         const link = document.createElement('a') 
@@ -221,12 +129,15 @@ export function DownloadSection() {
         link.download = fileTitle
 
         // adding the created a tag into the DOM
-        document.appendChild(link)
+        document.body.appendChild(link)
         link.click()
 
-        // cleaning up the dom after download is triggered
+        // cleaning up the DOM after download is triggered
         document.body.removeChild(link)
         URL.revokeObjectURL(excelUrl)
+
+        // Updating the available QR Code count
+        handleProductSelection(selectedProduct?.id ?? 0)
         return true
     } catch (error: any) {
       console.error("{DOWNLOAD FAIL} error occured in downloadingExcel function: ", error)
@@ -312,12 +223,12 @@ export function DownloadSection() {
 
           {/* Columns */}
           <div className="space-y-2">
-            <label className="text-xs md:text-sm font-medium">Simultaneous Product Limit</label>
+            <label className="text-xs md:text-sm font-medium">Number of column QR code need to divide</label>
             <Input
               type="number"
-              placeholder="Simultaneous Product Limit"
-              value={simulProduct}
-              onChange={(e) => setSimulProduct(e.target.value)}
+              placeholder="QR Code to Divide in"
+              value={divideQRcodeIn}
+              onChange={(e) => setDivideQRcodeIn(e.target.value)}
               min="1"
               max="10"
               className="text-xs md:text-sm"

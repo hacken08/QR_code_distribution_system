@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import path  from "path"
 import axios, { AxiosError } from 'axios';
 import { ProductType } from '../database/schemas/productSchemas'
 import { apiErrorHandle } from './error'
@@ -76,19 +77,19 @@ async function getDownloadQrCode(productId: number, qrQty: number): Promise<ApiR
 
 
 
-async function createExcelApi(qrCodes: QrCodeType[]): Promise<ApiResponse<any>> {
+async function createExcelApi(qrCodes: QrCodeType[], divideIn: number): Promise<ApiResponse<any>> {
     try {
-        const response = await axios.post('/api/gen-xl', { qrCodes });
+        const response = await axios.post('/api/gen-xl', { qrCodes, divideIn }, { responseType: 'blob' });
         console.log("{API RES} /api/gen-xl -> \n", response)
-        if (!response.data?.data) {
-            return {
-                status: false,
-                error: 'Invalid response format from server',
-            };
-        }
+        // if (!response.data?.data) {
+        //     return {
+        //         status: false,
+        //         error: 'Invalid response format from server',
+        //     };
+        // }
         return {
             status: true,
-            data: response.data.data,
+            data: response.data,
         };
     } catch (err: unknown) {
         return apiErrorHandle<any>(err)

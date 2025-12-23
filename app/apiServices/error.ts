@@ -13,7 +13,7 @@ function apiErrorHandle<T = any>(err: any): ApiResponse<T> {
             'Network error';
 
         const statusCode = err?.status ?? 0;
-        console.error(`[API ERROR] GET /api/get_product → ${statusCode} ${message}`);
+        console.error(`[API ERROR] ${err.request} → ${statusCode} ${message}`);
         return {
             status: false,
             error: statusCode >= 500

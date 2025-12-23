@@ -31,6 +31,29 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 
 ## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+This project use node version 20 LTS and sqlite3 Database. npm is must to execute the migration file
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+# Steps to run this project
+```
+npm install # install node package
+```
+
+### Installing tsx package to execute migration file (Optional)
+```
+npm install tsx 
+```
+
+
+### Running the migartion script define in package.json file
+```
+npm run migarte
+```
+
+### Starting the project in developer environment or use can also use pnpm to run.
+```
+npm run dev
+```
+
+
+
+
