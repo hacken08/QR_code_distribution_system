@@ -1,6 +1,8 @@
 "use client"
 
+import { LogOut, Upload, Users, History, Activity } from "lucide-react"
 import { formatHeaderTitle } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 import type React from "react"
 import { useState, useRef, useEffect } from "react"
 
@@ -118,7 +120,27 @@ export default function ChallanForm() {
         }
       `}</style>
 
-      <div className="h-screen w-screen bg-white p-6">
+      <div className="bg-white">
+        <header className="border-b bg-card sticky top-0 z-50 mb-6">
+          <div className="max-w-6xl mx-auto px-3 md:px-4 py-3 md:py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+            <div className="min-w-0">
+              <h1 className="text-xl md:text-2xl font-bold text-foreground">QR Code Manager</h1>
+              <p className="text-xs md:text-sm text-muted-foreground">Challan Entry</p>
+            </div>
+            <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4">
+              <div className="text-right">
+                <p className="text-xs md:text-sm font-medium truncate"></p>
+                <p className="text-xs text-muted-foreground">Supervisor</p>
+              </div>
+              <Button variant="outline" size="sm" onClick={e=>{}} className="gap-2 bg-transparent text-xs md:text-sm">
+                <LogOut className="w-4 h-4" />
+                <span className="hidden sm:inline">Logout</span>
+              </Button>
+            </div>
+          </div>
+        </header>
+
+        
         <div className="w-[70%] mx-auto  border-2  border-black rounded-md p-5">
 
           {/* Header */}

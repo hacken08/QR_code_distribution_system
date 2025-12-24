@@ -37,7 +37,7 @@ export default function AdminPage() {
 
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="max-h-screen max-w-screen bg-background">
       <header className="border-b bg-card sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-3 md:px-4 py-3 md:py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
           <div className="min-w-0">
