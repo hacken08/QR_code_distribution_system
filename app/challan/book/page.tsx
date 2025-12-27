@@ -18,26 +18,30 @@ export default function ChallanForm() {
       color: "",
       marka: "",
       poly: "",
-      bagBox: "",
+      bag: "",
+      box: "",
       pkg: "",
       nag: "",
       totalPcs: "",
-      tenPcsWt: "",
+      stdWt: "",
+      nagWt: "",
       rate: "",
     }),
   })
 
   const [columnWidths, setColumnWidths] = useState({
     itemName: 180,
-    size: 70,
+    itemCode: 70,
     color: 70,
-    marke: 70,
+    marka: 70,
     poly: 70,
-    bagBox: 70,
-    pkg: 70,
+    bag: 70,
+    box: 70,
+    stdPkg: 70,
     nag: 70,
     totalPcs: 70,
-    tenPcsWt: 70,
+    stdWt: 70,
+    actualWt: 70,
     rate: 70,
   })
 
@@ -122,7 +126,7 @@ export default function ChallanForm() {
 
       <div className="bg-white">
         <header className="border-b bg-card sticky top-0 z-50 mb-6">
-          <div className="max-w-6xl mx-auto px-3 md:px-4 py-3 md:py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+          <div className="max-w-6xl mx-auto px-3 md:px-4 py-2 md:py-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
             <div className="min-w-0">
               <h1 className="text-xl md:text-2xl font-bold text-foreground">QR Code Manager</h1>
               <p className="text-xs md:text-sm text-muted-foreground">Challan Entry</p>
