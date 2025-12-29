@@ -78,7 +78,7 @@ export function DownloadSection() {
       })
       return
     }
-    const fileName = `${selectedProduct?.productName.replace(/[^a-zA-Z0-9]/g, ' ')} - ${downloadApiResponse.data[0].batch_no} - ${downloadApiResponse.data.length}.xls`
+    const fileName = `${selectedProduct?.productName.replace(/[^a-zA-Z0-9]/g, ' ')} - ${downloadApiResponse.data[0].batch_no} - ${downloadApiResponse.data.length}`
 
     // Generting excel with QR code data
     console.log("{DEUBG INFO} DOwnloadApiresponse obj strucuter -> ", downloadApiResponse.data[0])
@@ -104,7 +104,6 @@ export function DownloadSection() {
         description: `Your excel file "${fileName}" is downloaded`,
       })
     }
-
   }
 
   const handleProductSelection = async (value: number) => {
