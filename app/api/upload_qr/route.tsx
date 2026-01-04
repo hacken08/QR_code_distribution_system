@@ -1,10 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { addDoc, query, collection, where, getDocs } from 'firebase/firestore'
 // import { getDbInstance } from '../../database/firebase-config'
-import {  qrcodeModel, qrCodeSchemaList  } from '../../database/schemas/qrcodeSchemas'
+import {  qrCodeSchemaList  } from '../../database/schemas/qrcodeSchemas'
 import { NextResponse } from 'next/server';
 import { z } from 'zod'
-import { ProductModel } from '@/app/database/schemas/productSchemas';
 import { db } from '../../../db/db'
 
 
@@ -12,7 +10,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const parsedBody = qrCodeSchemaList.parse(body);
-
+    
     // check if body contains any data to upload
     if (parsedBody.length === 0) {
       return NextResponse.json(
@@ -37,8 +35,7 @@ export async function POST(request: Request) {
         { status: 409 }
       )
     }
-    
-    // Checkng if the product with item code is exists
+    // Checking if the product with item code is exists
     const getOrCreateProductId = db.transaction((productParams: {
       itemCode: number, 
       productName: string,
@@ -53,30 +50,35 @@ export async function POST(request: Request) {
     const productId = getOrCreateProductId({itemCode, productName: productName})
 
     // Inserting QR Code data into sqlite3 database
-    for (const qrData of parsedBody) {
-      const insertQuery = `
-        INSERT INTO qrcodes (
-          product_name, 
-          product_id, 
-          item_code, 
-          batch_no, 
-          qrcode_string, 
-          points, 
-          is_used
-        ) 
-        VALUES ( 
-          '${qrData.productName}', 
-          '${productId}', 
-          '${qrData.itemCode}', 
-          '${qrData.batchNo}', 
-          '${qrData.qrcodeString}', 
-          '${qrData.points}', 0 );
-      `
-      db.exec(insertQuery) // executing query 
-    }
+    const insertQRCodes = db.transaction(() => {
+      console.log("{DB OPT} Inserting QR Code in DB")
+      for (const qrData of parsedBody) {
+        const insertQuery = db.prepare( `
+          INSERT OR IGNORE  INTO qrcodes (
+            product_name, 
+            product_id, 
+            item_code, 
+            batch_no, 
+            qrcode_string, 
+            points, 
+            is_used
+          ) 
+          VALUES ( 
+            '${qrData.productName}', 
+            '${productId}', 
+            '${qrData.itemCode}', 
+            '${qrData.batchNo}', 
+            '${qrData.qrcodeString}', 
+            '${qrData.points}', 0 );
+        `);
+        insertQuery.run() 
+      }
+    });    
+    insertQRCodes()
     
     return NextResponse.json({
         message: "QR code created successfully",
+        data: []
       }, { status: 201 }
     );
   } catch (error: unknown) {

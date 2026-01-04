@@ -2,15 +2,12 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Download, AlertCircle } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-// import { toast } from 'sonner'
-// import { addDoc, collection, Firestore } from "firebase/firestore"
-// import { addinigFirst, db } from "@/app/api/firebase-config"
-import { Select } from 'antd'
+import {  SyncOutlined } from '@ant-design/icons';
+import { Select, Button } from 'antd'
 import { getProducts, getProductsQrCount, createExcelApi } from "@/app/apiServices/apiService"
 import { ProductType } from "@/app/database/schemas/productSchemas"
 import { getDownloadQrCode as getQRCode } from '../../app/apiServices/apiService'
@@ -31,10 +28,12 @@ export function DownloadSection() {
   const [divideQRcodeIn, setDivideQRcodeIn] = useState("1")
   const [availableProduct, setAvailableProduct] = useState<ProductType[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<{productName: string, id: number, qrCodeCount: number }>()
-  const [isDownloading, setIsDownloading] = useState(false)
   const [toastApi, contextHolder] = notification.useNotification()
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const handleDownload = async () => {
+    setIsLoading(true)
+    
     // Validation and check 
     if (!selectedProduct) {
       console.log("{DOWNLOAD FAIL} There is no product selected")
@@ -104,9 +103,11 @@ export function DownloadSection() {
         description: `Your excel file "${fileName}" is downloaded`,
       })
     }
+    setIsLoading(false)
   }
 
   const handleProductSelection = async (value: number) => {
+    console.log("Searching product: ", value)
     const product = availableProduct.find(prod => prod.id === value)
     if (!product) return
     const responseData = await getProductsQrCount(product.id)
@@ -118,7 +119,7 @@ export function DownloadSection() {
     })
   }
 
-  async function triggerSExcelDownload(blob: any, fileTitle: string): Promise<boolean> {
+  async function triggerSExcelDownload(blob: Blob, fileTitle: string): Promise<boolean> {
     try {
         const excelUrl = URL.createObjectURL(blob) 
 
@@ -173,7 +174,9 @@ export function DownloadSection() {
           <div className="space-y-2 flex flex-col">
             <label className="text-xs md:text-sm font-medium">Product Name</label>
             <Select
-              showSearch
+              showSearch={{
+                optionFilterProp: ['label', 'otherField'],
+              }}
               placeholder="Select a product"
               options={availableProduct.map((prod) => ({ label: prod.product_name, value: prod.id }))}
               onChange={handleProductSelection}
@@ -201,23 +204,6 @@ export function DownloadSection() {
               min="1"
               className="text-xs md:text-sm"
             />
-            {/* {quantity && selectedProduct && (
-              <div
-                className={`mt-2 p-2 md:p-3 rounded-lg border ${hasEnoughQR
-                    ? "bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800"
-                    : "bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800"
-                  }`}
-              >
-                <p
-                  className={`text-xs md:text-sm font-medium ${hasEnoughQR ? "text-green-900 dark:text-green-100" : "text-red-900 dark:text-red-100"
-                    }`}
-                >
-                  {hasEnoughQR
-                    ? `✓ ${(availableQR - requestedQty).toLocaleString()} QR codes will remain`
-                    : `✗ Only ${availableQR.toLocaleString()} available (need ${requestedQty.toLocaleString()})`}
-                </p>
-              </div>
-            )} */}
           </div>
 
           {/* Columns */}
@@ -246,11 +232,12 @@ export function DownloadSection() {
           {/* Download Button */}
           <Button
             onClick={handleDownload}
-            // disabled={!isFormValid || isDownloading || !hasEnoughQR}
             className="w-full bg-blue-600 cursor-pointer hover:bg-blue-700 gap-2 text-sm md:text-base py-2 md:py-3"
+            loading={isLoading && { icon: <SyncOutlined spin /> }}
+            type="primary"            
           >
             <Download className="w-4 h-4" />
-            {isDownloading ? "Generating..." : "Download Excel File"}
+            {"Download Excel File"}
           </Button>
         </CardContent>
       </Card>

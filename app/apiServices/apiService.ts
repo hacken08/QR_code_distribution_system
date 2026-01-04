@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import path  from "path"
+import path from "path"
 import axios, { AxiosError } from 'axios';
 import { ProductType } from '../database/schemas/productSchemas'
 import { apiErrorHandle } from './error'
 import { ApiResponse } from './apiResponseStruct';
-import { QrCodeType } from '../database/schemas/qrcodeSchemas';
+import { QrCodeSchemaList, QrCodeType } from '../database/schemas/qrcodeSchemas';
 
 async function getProducts(): Promise<ApiResponse<ProductType[]>> {
     try {
@@ -98,5 +98,26 @@ async function createExcelApi(qrCodes: QrCodeType[], divideIn: number): Promise<
 
 
 
-export { getProducts, getProductsQrCount, getDownloadQrCode, createExcelApi }
+async function uploadExcelToServer(qrCodes: QrCodeSchemaList): Promise<ApiResponse<any>> {
+    try {
+        const response = await axios.post('/api/upload_qr', qrCodes);
+        console.log("{API RES} /api/upload_qr -> \n", response)
+        if (!response.data?.data) {
+            return {
+                status: false,
+                error: 'Invalid response format from server',
+            };
+        }
+        return {
+            status: true,
+            data: response.data,
+        };
+    } catch (err: unknown) {
+        return apiErrorHandle<any>(err)
+    }
+}
+
+
+
+export { getProducts, getProductsQrCount, getDownloadQrCode, createExcelApi, uploadExcelToServer }
 

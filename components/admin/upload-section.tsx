@@ -14,7 +14,7 @@ import {
   Input,
   notification
 } from 'antd'
-import { number } from "zod"
+import { uploadExcelToServer } from "@/app/apiServices/apiService"
 
 // import { addDoc, collection } from 'firebase/firestore'
 // import { db } from '../../app/api/firebase-config'
@@ -27,7 +27,7 @@ export function UploadSection() {
   const [qrCodeData, setQrCodeData] = useState<QrCodeSchemaList>([]);
   const [batchNo, setBatchNo] = useState<number>()
   const [itemCode, setItemCode] = useState<number>()
-  const [api, contextHolder] = notification.useNotification()
+  const [toastApi, contextHolder] = notification.useNotification()
 
   
   const handleFileSelect =  (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -37,6 +37,13 @@ export function UploadSection() {
     Papa.parse(file, {
       header: true,
       dynamicTyping: true,
+      error(error, file) {
+        console.error(`Error while reading the excel: ${file.name}`, error)
+        toastApi.error({
+          title: "Upload Fail", 
+          description: `Error While Reading The Excel: ${error}`,
+        })
+      },
       complete: function (results: any) {
         const csvData: any[] = results.data;
         const qrCodes = csvData.map((data, idx) => {
@@ -68,7 +75,7 @@ export function UploadSection() {
 
     // checking item code and batch no
     if (itemCode === undefined || batchNo === undefined) {
-      api.error({
+      toastApi.error({
         title: 'Missing Field',
         description: 'Item code or batchNo is not provided.',
         duration: false,
@@ -78,20 +85,26 @@ export function UploadSection() {
     
     setIsUploading(true);
 
-    try {
-      qrCodeData.forEach((qrData) => {
-        qrData.batchNo = batchNo;
-        qrData.itemCode = itemCode;
+    qrCodeData.forEach((qrData) => {
+      qrData.batchNo = batchNo;
+      qrData.itemCode = itemCode;
+    })
+    const res = await uploadExcelToServer(qrCodeData);
+
+    // Checking upload response
+    if (!res.status) {
+      toastApi.error({
+        title: "Upload Fail", 
+        description: `Fail To Upload: ${res.error}`,
       })
-      const res = await axios.post("/api/upload_qr", qrCodeData);
-      if (res.status >= 400) throw new Error("Upload failed");
-      alert("File uploaded successfully!");
-    } catch (err) {
-      console.error(err);
-      alert("Error uploading file");
-    } finally {
-      setIsUploading(false);
+      return
     }
+
+    toastApi.success({
+      title: "Uploaded", 
+      description: `Excel is uploaded at server`,
+    })
+    setIsUploading(false);
   };
 
 
