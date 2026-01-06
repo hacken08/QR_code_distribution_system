@@ -40,6 +40,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 node_modules
+<<<<<<< HEAD
 /db/database.db
 /db/database_backup.db
+=======
+
+>>>>>>> e71d9498a0ffdf18f6a5c3f0d08a74f18e19cc27
 certificates
