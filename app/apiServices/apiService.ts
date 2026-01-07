@@ -98,7 +98,6 @@ async function createExcelApi(qrCodes: QrCodeType[], divideIn: number): Promise<
 
 
 
-<<<<<<< HEAD
 async function uploadExcelToServer(qrCodes: QrCodeSchemaList): Promise<ApiResponse<any>> {
     try {
         const response = await axios.post('/api/upload_qr', qrCodes);
@@ -121,7 +120,4 @@ async function uploadExcelToServer(qrCodes: QrCodeSchemaList): Promise<ApiRespon
 
 
 export { getProducts, getProductsQrCount, getDownloadQrCode, createExcelApi, uploadExcelToServer }
-=======
-export { getProducts, getProductsQrCount, getDownloadQrCode, createExcelApi }
->>>>>>> e71d9498a0ffdf18f6a5c3f0d08a74f18e19cc27
 
