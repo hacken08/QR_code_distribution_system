@@ -43,4 +43,4 @@ node_modules
 /db/database.db
 /db/database_backup.db
 /db_backup
-certificates
+
