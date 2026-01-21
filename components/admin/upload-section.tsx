@@ -28,6 +28,7 @@ export function UploadSection() {
   const [qrCodeData, setQrCodeData] = useState<QrCodeSchemaList>([]);
   const [batchNo, setBatchNo] = useState<number>()
   const [itemCode, setItemCode] = useState<number>()
+  const [isItemCodeDisable, setIsItemCodeDisable] = useState(false);
   const [toastApi, contextHolder] = notification.useNotification()
 
   
@@ -97,6 +98,7 @@ export function UploadSection() {
     }
     const { data: product } = productParsed;
     setItemCode(product.item_code);
+    setIsItemCodeDisable(true);
     return true;
   }
 
@@ -202,7 +204,7 @@ export function UploadSection() {
 
             <div className="flex flex-col my-6 gap-2">
               <label className="text-xs md:text-sm font-medium block">Item Code</label>
-              <Input placeholder="Item code" type={'number'} value={itemCode} onChange={e=>setItemCode(parseInt(e.target.value))}/>
+              <Input placeholder="Item code" type={'number'} value={itemCode} disabled={isItemCodeDisable} onChange={e=>setItemCode(parseInt(e.target.value))}/>
               <div className="h-3"></div>
               <label className="text-xs md:text-sm font-medium block">Batch No.</label>
               <Input placeholder="Batch No."  type={'number'} onChange={e=>setBatchNo(parseInt(e.target.value))} />
