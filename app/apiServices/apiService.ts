@@ -1,11 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import path from "path"
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
 import { ProductType } from '../database/schemas/productSchemas'
 import { apiErrorHandle } from './error'
 import { ApiResponse } from './apiResponseStruct';
 import { QrCodeSchemaList, QrCodeType } from '../database/schemas/qrcodeSchemas';
+
+
+const backendHost = process.env.NEXT_PUBLIC_BACKEND_HOST || "";
 
 async function getProducts(): Promise<ApiResponse<ProductType[]>> {
     try {
@@ -100,9 +102,16 @@ async function createExcelApi(qrCodes: QrCodeType[], divideIn: number): Promise<
 
 async function uploadExcelToServer(qrCodes: QrCodeSchemaList): Promise<ApiResponse<any>> {
     try {
-        const response = await axios.post('/api/upload_qr', qrCodes);
+        console.log("{INFO} base url -> ", backendHost);
+        const reqBody = {
+            variables: { createQrcodeInput: qrCodes },
+            query: `mutation createQrcode($createQrcodeInput: [CreateQrcodeInput!]!) {
+                    createQrcode(createQrcodeInput: $createQrcodeInput) 
+                }`
+        }
+        const response = await axios.post(backendHost, reqBody, { maxBodyLength: 10 * 1024 * 1024 });
         console.log("{API RES} /api/upload_qr -> \n", response)
-        if (!response.data?.data) {
+        if (!response.data?.data.createQrcode) {
             return {
                 status: false,
                 error: 'Invalid response format from server',
@@ -110,7 +119,7 @@ async function uploadExcelToServer(qrCodes: QrCodeSchemaList): Promise<ApiRespon
         }
         return {
             status: true,
-            data: response.data,
+            data: response.data?.data.createQrcode,
         };
     } catch (err: unknown) {
         return apiErrorHandle<any>(err)
@@ -120,14 +129,20 @@ async function uploadExcelToServer(qrCodes: QrCodeSchemaList): Promise<ApiRespon
 
 
 
-async function findProductByName(name: string): Promise<ApiResponse<any>> {
+async function findProductByName(product_name: string): Promise<ApiResponse<any>> {
     try {
-        const response = await axios.get<{ data: number }>(
-            '/api/findProductByName',
-            { params: { name } }
-        );
-        console.log("{API RES} /api/findProductByName -> \n", response)
-        if (!response.data?.data) {
+        console.log("{INFO} base url -> ", backendHost);
+        const reqBody = {
+            variables: { searchProductInput: { product_name } },
+            query: `query findProductByName($searchProductInput: SearchProductInput!) {
+                findProductByName(searchProductInput: $searchProductInput) {
+                    product_name, id, item_code
+                }
+            }`
+        }
+        const response = await axios.post(backendHost, reqBody);
+        console.log("{API RES} /api/findProductByName -> \n", response.data)
+        if (!response.data?.data.findProductByName) {
             return {
                 status: false,
                 error: 'Invalid response format from server',
@@ -135,7 +150,7 @@ async function findProductByName(name: string): Promise<ApiResponse<any>> {
         }
         return {
             status: true,
-            data: response.data.data,
+            data: response.data?.data.findProductByName,
         };
     } catch (err: unknown) {
         return apiErrorHandle<any>(err)
@@ -145,5 +160,12 @@ async function findProductByName(name: string): Promise<ApiResponse<any>> {
 
 
 
-export { getProducts, getProductsQrCount, getDownloadQrCode, createExcelApi, uploadExcelToServer, findProductByName }
+export {
+    getProducts,
+    getProductsQrCount,
+    getDownloadQrCode,
+    createExcelApi,
+    uploadExcelToServer,
+    findProductByName
+}
 

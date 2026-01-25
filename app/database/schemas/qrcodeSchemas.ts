@@ -20,10 +20,10 @@ type QrCodeType = z.infer<typeof qrcodeSchemas>;
 
 // creat qrcode payload
 const qrCodePayloadSchema = z.object({
-  productName: z.string(),
-  itemCode: z.number(),
-  batchNo: z.number(),
-  qrcodeString: z.string(),
+  product_name: z.string(),
+  item_code: z.number(),
+  batch_no: z.number(),
+  qrcode_string: z.string(),
   points: z.number(),
 });
 

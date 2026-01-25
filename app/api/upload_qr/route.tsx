@@ -19,9 +19,9 @@ export async function POST(request: Request) {
       )
     }
     
-    const itemCode = parsedBody[0].itemCode
-    const batchNo = parsedBody[0].batchNo
-    const productName = parsedBody[0].productName
+    const itemCode = parsedBody[0].item_code
+    const batchNo = parsedBody[0].batch_no
+    const productName = parsedBody[0].product_name
 
     // Check if batch already exist in excel
     const existedQrCodeQuery = db.prepare(`
@@ -64,11 +64,11 @@ export async function POST(request: Request) {
             is_used
           ) 
           VALUES ( 
-            '${qrData.productName}', 
+            '${qrData.product_name}', 
             '${productId}', 
-            '${qrData.itemCode}', 
-            '${qrData.batchNo}', 
-            '${qrData.qrcodeString}', 
+            '${qrData.item_code}', 
+            '${qrData.batch_no}', 
+            '${qrData.qrcode_string}', 
             '${qrData.points}', 0 );
         `);
         insertQuery.run() 

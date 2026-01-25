@@ -2,7 +2,6 @@
 "use client"
 
 import type React from "react"
-import axios from 'axios'
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -52,10 +51,10 @@ export function UploadSection() {
           const dataValues = Object.values(data)
           try {
             return {
-              itemCode: 1,
-              batchNo: 1,
-              productName: dataValues[1] as string,  
-              qrcodeString: dataValues[4] as string,
+              item_code: 1,
+              batch_no: 1,
+              product_name: dataValues[1] as string,  
+              qrcode_string: dataValues[4] as string,
               points: dataValues[3] as number
             }
           } catch (e: any) {
@@ -64,8 +63,8 @@ export function UploadSection() {
           }
         })
         let filterNullValue = qrCodes.filter(data => data !== null)
-        filterNullValue = filterNullValue.filter(data => data.productName || data.qrcodeString)
-        isProductExist(filterNullValue[0].productName);
+        filterNullValue = filterNullValue.filter(data => data.product_name || data.qrcode_string)
+        isProductExist(filterNullValue[0].product_name);
         setQrCodeData(filterNullValue)
       },
     });
@@ -75,24 +74,33 @@ export function UploadSection() {
     console.log("finding product: ", productName)
     const findProductResponse =  await findProductByName(productName);
     if (!findProductResponse.status) {
-      console.log("{ERROR} Occured in findProductByName api: ", findProductResponse.error);
+      console.error("{ERROR} Occured in findProductByName api: ", findProductResponse.error);
       toastApi.error({
         title: "Unexpected error occured", 
         description: "Unable to determine whether product is already uploaded or not"
       })
+      setIsItemCodeDisable(false);
+      setItemCode(0);
       return false;
     }
-
-    const { products } = findProductResponse.data;
+    const products = findProductResponse.data;
     if (!Array.isArray(products)) {
+      setItemCode(NaN)
+      setIsItemCodeDisable(false)
       console.error("Api response has invalid data");
       return false;
     }
-    if (products.length === 0) return false
+    if (products.length === 0) {
+      setItemCode(NaN)
+      setIsItemCodeDisable(false)
+      return false
+    }
     const [ item ] = products;
     console.log("{DEBUG} fetched products: ", item)
     const productParsed = productSchemas.safeParse(item);
     if (!productParsed.success) {
+      setItemCode(NaN)
+      setIsItemCodeDisable(false)
       console.error("unable to parse the products: ", productParsed.error);
       return false;
     }
@@ -104,32 +112,30 @@ export function UploadSection() {
 
   const handleUpload = async () => {
     if (!fileInput?.files?.[0]) return;
-    const file = fileInput.files[0];
 
     // checking item code and batch no
     if (itemCode === undefined || batchNo === undefined) {
       toastApi.error({
+        duration: false,
         title: 'Missing Field',
         description: 'Item code or batchNo is not provided.',
-        duration: false,
       })
       return
     }
-    
     setIsUploading(true);
-
     qrCodeData.forEach((qrData) => {
-      qrData.batchNo = batchNo;
-      qrData.itemCode = itemCode;
+      qrData.batch_no = batchNo;
+      qrData.item_code = itemCode;
     })
     const res = await uploadExcelToServer(qrCodeData);
 
     // Checking upload response
-    if (!res.status) {
+    if (!res.status || !res.data) {
       toastApi.error({
         title: "Upload Fail", 
         description: `Fail To Upload: ${res.error}`,
       })
+      setIsUploading(false);  
       return
     }
 
@@ -141,10 +147,13 @@ export function UploadSection() {
   };
 
 
-  const clearFile = () => {
-    // setFileName("");
-    // if (fileInput) fileInput.value = "";
-  };
+  const resetPage = () => {
+    setItemCode(NaN)
+    setBatchNo(NaN)
+    setFileName("")
+    setIsUploading(false)
+    setIsItemCodeDisable(false)
+  }
 
   return (
     <div className="space-y-4 md:space-y-6">
@@ -207,7 +216,7 @@ export function UploadSection() {
               <Input placeholder="Item code" type={'number'} value={itemCode} disabled={isItemCodeDisable} onChange={e=>setItemCode(parseInt(e.target.value))}/>
               <div className="h-3"></div>
               <label className="text-xs md:text-sm font-medium block">Batch No.</label>
-              <Input placeholder="Batch No."  type={'number'} onChange={e=>setBatchNo(parseInt(e.target.value))} />
+              <Input placeholder="Batch No."  type={'number'} value={batchNo} onChange={e=>setBatchNo(parseInt(e.target.value))} />
             </div>
 
             {fileName && (
@@ -217,7 +226,7 @@ export function UploadSection() {
                   <p className="text-xs md:text-sm font-medium truncate">{fileName}</p>
                 </div>
                 <button
-                  onClick={clearFile}
+                  onClick={resetPage}
                   className="p-1 hover:bg-background rounded transition-colors"
                   aria-label="Clear file"
                 >
