@@ -175,7 +175,7 @@ export function DownloadSection() {
             <label className="text-xs md:text-sm font-medium">Product Name</label>
             <Select
               showSearch={{
-                optionFilterProp: ['label', 'otherField'],
+                optionFilterProp: 'label',
               }}
               placeholder="Select a product"
               options={availableProduct.map((prod) => ({ label: prod.product_name, value: prod.id }))}
