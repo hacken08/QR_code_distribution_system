@@ -14,7 +14,8 @@ import {
   Input,
   notification
 } from 'antd'
-import { uploadExcelToServer } from "@/app/apiServices/apiService"
+import { findProductByName, uploadExcelToServer } from "@/app/apiServices/apiService"
+import { productSchemas } from "@/app/database/schemas/productSchemas"
 
 // import { addDoc, collection } from 'firebase/firestore'
 // import { db } from '../../app/api/firebase-config'
@@ -27,6 +28,7 @@ export function UploadSection() {
   const [qrCodeData, setQrCodeData] = useState<QrCodeSchemaList>([]);
   const [batchNo, setBatchNo] = useState<number>()
   const [itemCode, setItemCode] = useState<number>()
+  const [isItemCodeDisable, setIsItemCodeDisable] = useState(false);
   const [toastApi, contextHolder] = notification.useNotification()
 
   
@@ -63,11 +65,42 @@ export function UploadSection() {
         })
         let filterNullValue = qrCodes.filter(data => data !== null)
         filterNullValue = filterNullValue.filter(data => data.productName || data.qrcodeString)
+        isProductExist(filterNullValue[0].productName);
         setQrCodeData(filterNullValue)
       },
     });
   };
 
+  async function isProductExist(productName: string): Promise<boolean> {
+    console.log("finding product: ", productName)
+    const findProductResponse =  await findProductByName(productName);
+    if (!findProductResponse.status) {
+      console.log("{ERROR} Occured in findProductByName api: ", findProductResponse.error);
+      toastApi.error({
+        title: "Unexpected error occured", 
+        description: "Unable to determine whether product is already uploaded or not"
+      })
+      return false;
+    }
+
+    const { products } = findProductResponse.data;
+    if (!Array.isArray(products)) {
+      console.error("Api response has invalid data");
+      return false;
+    }
+    if (products.length === 0) return false
+    const [ item ] = products;
+    console.log("{DEBUG} fetched products: ", item)
+    const productParsed = productSchemas.safeParse(item);
+    if (!productParsed.success) {
+      console.error("unable to parse the products: ", productParsed.error);
+      return false;
+    }
+    const { data: product } = productParsed;
+    setItemCode(product.item_code);
+    setIsItemCodeDisable(true);
+    return true;
+  }
 
   const handleUpload = async () => {
     if (!fileInput?.files?.[0]) return;
@@ -171,7 +204,7 @@ export function UploadSection() {
 
             <div className="flex flex-col my-6 gap-2">
               <label className="text-xs md:text-sm font-medium block">Item Code</label>
-              <Input placeholder="Item code" type={'number'} onChange={e=>setItemCode(parseInt(e.target.value))}/>
+              <Input placeholder="Item code" type={'number'} value={itemCode} disabled={isItemCodeDisable} onChange={e=>setItemCode(parseInt(e.target.value))}/>
               <div className="h-3"></div>
               <label className="text-xs md:text-sm font-medium block">Batch No.</label>
               <Input placeholder="Batch No."  type={'number'} onChange={e=>setBatchNo(parseInt(e.target.value))} />
@@ -232,3 +265,4 @@ export function UploadSection() {
     </div>
   )
 }
+

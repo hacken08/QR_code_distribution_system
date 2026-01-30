@@ -96,3 +96,17 @@ export async function POST(request: Request) {
   }
 }
 
+
+// async function isQRCodeAlreadyExists(qrCodeString: string): Promise<boolean> {
+//     const findingExistedQRCode = db.transaction((params: {
+//       qrCodeString: string, 
+//     }) => {
+//       const row = db.prepare("SELECT * FROM qrcodes WHERE qrcode_string = ?;").get(params.qrCodeString) as any;
+//       console.log("Existing QR Codes: ", row);
+//       return row
+//     });    
+
+//     await findingExistedQRCode(qrCodeString);
+    
+//   return true;
+// }

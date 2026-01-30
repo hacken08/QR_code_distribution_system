@@ -7,9 +7,9 @@ const productSchemas = z.object({
   id: z.number(),
   item_code: z.number(),
   product_name: z.string(),
-  created_at: z.date().nullable().optional().default(new Date),
-  deleted_at: z.date().nullable().optional().default(null),
-  updated_at: z.date().nullable().optional().default(null)
+  created_at: z.string().nullable().optional().default(""),
+  deleted_at: z.string().nullable().optional().default(null),
+  updated_at: z.string().nullable().optional().default(null)
 })
 
 type ProductType = z.infer<typeof productSchemas>

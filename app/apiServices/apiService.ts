@@ -119,5 +119,31 @@ async function uploadExcelToServer(qrCodes: QrCodeSchemaList): Promise<ApiRespon
 
 
 
-export { getProducts, getProductsQrCount, getDownloadQrCode, createExcelApi, uploadExcelToServer }
+
+async function findProductByName(name: string): Promise<ApiResponse<any>> {
+    try {
+        const response = await axios.get<{ data: number }>(
+            '/api/findProductByName',
+            { params: { name } }
+        );
+        console.log("{API RES} /api/findProductByName -> \n", response)
+        if (!response.data?.data) {
+            return {
+                status: false,
+                error: 'Invalid response format from server',
+            };
+        }
+        return {
+            status: true,
+            data: response.data.data,
+        };
+    } catch (err: unknown) {
+        return apiErrorHandle<any>(err)
+    }
+}
+
+
+
+
+export { getProducts, getProductsQrCount, getDownloadQrCode, createExcelApi, uploadExcelToServer, findProductByName }
 
