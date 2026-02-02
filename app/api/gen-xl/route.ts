@@ -1,10 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from "next/server";
 import * as z from "zod";
-import XLS from "xlsjs";
-import path from "path";
-import fs from "fs";
-import { execSync } from "child_process";
 
 const payloadSchema = z.object({
   qrCodes: z.array(

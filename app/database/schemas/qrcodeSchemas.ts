@@ -2,32 +2,33 @@
 import { z } from 'zod';
 import { FirestoreDataConverter, QueryDocumentSnapshot, SnapshotOptions } from 'firebase/firestore';
 
-//  Main Entity
+
 export const qrcodeSchemas = z.object({
-  id: z.number().optional(),
-  product_name: z.string(),
-  product_id: z.number().min(1, "Product id not defined"),
-  item_code: z.number().gt(0, "item_code should be positive integer"),
-  batch_no: z.number().gt(0, "batch_no should be positive integer"),
+  id: z.number(),
+  product_id: z.number(),
+  item_code: z.number(),
+  batch_no: z.number(),
   qrcode_string: z.string(),
+  product_name: z.string(),
   points: z.number(),
-  is_used: z.boolean().optional().default(false),
-  created_at: z.date().nullable().optional().default(() => new Date()),
-  deleted_at: z.date().nullable().optional().default(null),
-  updated_at: z.date().nullable().optional().default(null),
-})
+  is_used: z.boolean(),
+  created_at: z.date(),
+  deleted_at: z.date().nullable(),
+  updated_at: z.date().nullable(),
+  product: z.any(),
+});
+
 type QrCodeType = z.infer<typeof qrcodeSchemas>;
 
 // creat qrcode payload
 const qrCodePayloadSchema = z.object({
-  productName: z.string(),
-  itemCode: z.number(),
-  batchNo: z.number(),
-  qrcodeString: z.string(),
+  product_name: z.string(),
+  item_code: z.number(),
+  batch_no: z.number(),
+  qrcode_string: z.string(),
   points: z.number(),
 });
 
-type QrCodePayloadTypes = z.infer<typeof qrCodePayloadSchema>
 const qrCodeSchemaList = z.array(qrCodePayloadSchema)
 type QrCodeSchemaList = z.infer<typeof qrCodeSchemaList>
 

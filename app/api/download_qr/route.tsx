@@ -3,7 +3,6 @@ import { db } from '../../../db/db'
 import {NextResponse} from 'next/server'
 import { qrcodeSchemas } from '@/app/database/schemas/qrcodeSchemas'
 import z from 'zod'
-import { error } from 'console'
 
 const payloadSchema = z.object({
     qrQty: z.number().min(1, "QR Qty to download should be greater than 0"),
@@ -17,24 +16,24 @@ export async function POST(req: Request) {
         const { qrQty, productId } = payloadSchema.parse(body)
         
         const claimQRCodeQuery = db.prepare(`
-            UPDATE qrcodes
-                SET is_used = 1,
-                    updated_at = datetime('now')
-                WHERE id IN (
-                    SELECT id 
-                    FROM qrcodes 
-                    WHERE product_id = ?
-                    AND is_used = 0 
-                    LIMIT ?
-                )
-                RETURNING 
-                    id, 
-                    qrcode_string, 
-                    product_name,
-                    product_id,
-                    points,
-                    item_code,
-                    batch_no
+        UPDATE qrcodes
+            SET is_used = 1,
+                updated_at = datetime('now')
+            WHERE id IN (
+                SELECT id 
+                FROM qrcodes 
+                WHERE product_id = ?
+                AND is_used = 0 
+                LIMIT ?
+            )
+            RETURNING 
+                id, 
+                qrcode_string, 
+                product_name,
+                product_id,
+                points,
+                item_code,
+                batch_no
         `)
 
         const claimedQr = claimQRCodeQuery.all(productId, qrQty)

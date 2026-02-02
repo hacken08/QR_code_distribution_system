@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
@@ -8,11 +9,9 @@ import { Download, AlertCircle } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import {  SyncOutlined } from '@ant-design/icons';
 import { Select, Button } from 'antd'
-import { getProducts, getProductsQrCount, createExcelApi } from "@/app/apiServices/apiService"
+import { getProducts, getProductsQrCount, createExcelApi, downloadQrCodes } from "@/app/apiServices/apiService"
 import { ProductType } from "@/app/database/schemas/productSchemas"
-import { getDownloadQrCode as getQRCode } from '../../app/apiServices/apiService'
 import { notification } from 'antd'
-// import excelJs, {Workbook} from 'exceljs'
 
 const productQRAvailability: Record<string, number> = {
   "MCB Box": 1250,
@@ -26,17 +25,16 @@ const productQRAvailability: Record<string, number> = {
 export function DownloadSection() {
   const [quantity, setQuantity] = useState("")
   const [divideQRcodeIn, setDivideQRcodeIn] = useState("1")
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [toastApi, contextHolder] = notification.useNotification()
   const [availableProduct, setAvailableProduct] = useState<ProductType[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<{productName: string, id: number, qrCodeCount: number }>()
-  const [toastApi, contextHolder] = notification.useNotification()
-  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const handleDownload = async () => {
     setIsLoading(true)
     
     // Validation and check 
     if (!selectedProduct) {
-      console.log("{DOWNLOAD FAIL} There is no product selected")
       toastApi.warning({
         title: "Download Fail",
         description: "There is no product selected",
@@ -45,7 +43,6 @@ export function DownloadSection() {
       return
     }
     if (quantity === "" || !quantity ||  !divideQRcodeIn) {
-      console.log("{DOWNLOAD FAIL} Enter quantity to download")
       toastApi.warning({
         title: "Download Fail",
         description: "Enter quantity or 'Divide In'",
@@ -53,7 +50,6 @@ export function DownloadSection() {
       })
       return
     } else if (!parseInt(quantity) || !parseInt(divideQRcodeIn)) {
-      console.log("{VALIDATION FAIL} Quantity should be in numbers only")
       toastApi.warning({
         title: "Validation Error",
         description: "'Quantity' and 'Divide In' should be in numbers only",
@@ -63,7 +59,7 @@ export function DownloadSection() {
     } 
     
     // Make a Api call to Server 
-    const downloadApiResponse = await getQRCode(
+    const downloadApiResponse = await downloadQrCodes(
       selectedProduct.id, 
       parseInt(quantity)
     );
@@ -107,38 +103,44 @@ export function DownloadSection() {
   }
 
   const handleProductSelection = async (value: number) => {
-    console.log("Searching product: ", value)
     const product = availableProduct.find(prod => prod.id === value)
     if (!product) return
     const responseData = await getProductsQrCount(product.id)
-    if (!responseData.status || !responseData.data) return
+    if (!responseData.status || !responseData.data) {
+      toastApi.error({
+        title: "Something went wrong",
+        description: `Fail to know the count of QR Codes of '${product.product_name}'. Check console for more info `
+      })
+      console.error(responseData.error)
+      return
+    }
     setSelectedProduct({
-      productName: product?.product_name ?? "", 
-      qrCodeCount: responseData.data.count,
       id: product.id,
+      qrCodeCount: responseData.data,
+      productName: product?.product_name ?? "",
     })
   }
 
   async function triggerSExcelDownload(blob: Blob, fileTitle: string): Promise<boolean> {
     try {
-        const excelUrl = URL.createObjectURL(blob) 
+      const excelUrl = URL.createObjectURL(blob) 
 
-        // creat a tag with trigger url
-        const link = document.createElement('a') 
-        link.href = excelUrl
-        link.download = fileTitle
+      // creat a tag with trigger url
+      const link = document.createElement('a') 
+      link.href = excelUrl
+      link.download = fileTitle
 
-        // adding the created a tag into the DOM
-        document.body.appendChild(link)
-        link.click()
+      // adding the created a tag into the DOM
+      document.body.appendChild(link)
+      link.click()
 
-        // cleaning up the DOM after download is triggered
-        document.body.removeChild(link)
-        URL.revokeObjectURL(excelUrl)
+      // cleaning up the DOM after download is triggered
+      document.body.removeChild(link)
+      URL.revokeObjectURL(excelUrl)
 
-        // Updating the available QR Code count
-        handleProductSelection(selectedProduct?.id ?? 0)
-        return true
+      // Updating the available QR Code count
+      handleProductSelection(selectedProduct?.id ?? 0)
+      return true
     } catch (error: any) {
       console.error("{DOWNLOAD FAIL} error occured in downloadingExcel function: ", error)
       return false;
@@ -149,6 +151,11 @@ export function DownloadSection() {
     async function init() {
       const response = await getProducts()
       if (!response.status || !response.data) {
+        toastApi.error({
+          title: "Something went wrong",
+          description: `Fail to get the products'. Check console for more info `
+        })
+        console.error(response.error)
         return
       }
       setAvailableProduct(response.data)
