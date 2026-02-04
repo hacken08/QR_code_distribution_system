@@ -1,22 +1,15 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-// import { Flex, Text, Button } from "@radix-ui/themes";
 import { Button } from "@/components/ui/button"
-// import { Input } from "@/components/ui/input"
 import { QrCode } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 
-
-
-
 export default function LoginPageRoute() {
-  const router = useRouter()
-  const [name, setName] = useState("")
   const [selectedRole, setSelectedRole] = useState<"admin" | "operator" | null>(null)
-
+  const [name, setName] = useState("")
+  const router = useRouter()
 
   const handleLogin = () => {
     if (selectedRole) {
