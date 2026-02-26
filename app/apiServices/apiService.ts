@@ -8,9 +8,10 @@ import { QrCodeSchemaList, QrCodeType } from '../database/schemas/qrcodeSchemas'
 
 
 const backendHost = process.env.NEXT_PUBLIC_BACKEND_HOST || "";
-
+console.log("requesting to: ", backendHost)
 async function getProducts(): Promise<ApiResponse<ProductType[]>> {
     try {
+	console.log("Hitting request at findAllProducts resolver: ", backendHost);
         const reqBody = {
             variables: {},
             query: `query findAllProducts {
